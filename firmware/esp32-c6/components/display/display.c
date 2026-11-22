@@ -37,3 +37,8 @@ void display_init(void)
     ESP_ERROR_CHECK(esp_timer_start_periodic(timer, 2000));
 }
 void display_process(void) { lv_timer_handler(); }
+void display_memory(unsigned *free_bytes,unsigned *fragmentation)
+{
+    lv_mem_monitor_t memory;lv_mem_monitor(&memory);
+    *free_bytes=(unsigned)memory.free_size;*fragmentation=(unsigned)memory.frag_pct;
+}

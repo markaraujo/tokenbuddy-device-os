@@ -1,29 +1,26 @@
-﻿# Próximos critérios de aceite
+﻿# Etapas e critérios
 
-1. Ambiente e build mínimo passaram; revisar diferença local do SDK e validar a seleção nativa da extensão VS Code antes de homologar a Fase 0.
-2. COM3 identificada como ESP32-C6FH8/8 MB; confirmar revisão física da Waveshare diante da divergência de capacidade. Obter confirmação explícita para primeiro flash, verificar boot, heartbeat e reset.
-3. Demo oficial baixado: LVGL 8.3.11 e ST7789T; validar build do exemplo no SDK candidato antes de integrar LCD, orientação, cores e backlight.
-4. Avatar MVP e máquina de estados independente do hardware, com testes de transições e prioridades no host.
+| Etapa | Situação atual |
+|---|---|
+| 0 — Ambiente | SDK 5.5.2 limpo, demo oficial e firmware compilam; scripts/tarefas VS Code preparados |
+| 1 — Placa | ESP32-C6FH8/8 MB identificado; flash e execução real validados |
+| 2 — LCD | Cinco cores/borda/orientação confirmadas pelo usuário |
+| 3 — Avatar | MVP 0.3.0: dez estados, animações, RGB, cinco telas e BOOT |
+| 4 — Entradas | BOOT implementado/testado; MPR121 e IMU externos ainda indisponíveis |
+| 5 — Comunicação | USB/heartbeat/offline/API local implementados; Wi-Fi/provisionamento futuros |
+| 6 — Agentes | Processos reais e adaptador Codex JSONL; outros agentes futuros |
 
-Nenhum flash, LCD ou teste físico de firmware próprio foi aprovado. Sem sensores ou software host antes de validar a base.
+Critérios do MVP com hardware disponível atendidos: build/flash, funcionamento
+local, entrada real, telas, telemetria real, eventos e protocolo testados; ajustes
+persistem após reset, erros são rejeitados, logs e pacote reproduzíveis.
 
-## Avanço da Fase 2
+A entrega cobre o MVP de hoje, não todas as ambições do produto. Antes de adicionar
+Wi-Fi, sensores ou áudio, conferir componentes, alimentação, pinagem e requisitos.
+Não criar drivers vazios nem presumir que a variante sem touch tem QMI8658.
 
-Demo Waveshare original e teste LCD isolado compilaram no SDK candidato.
-[Teste e critérios](lcd-validation.md): fonte versionada, brilho inicial 30%,
-sem montagem/formatação microSD. Teste físico aguarda nome/revisão da placa,
-pois a unidade FH8/8 MB diverge do esquema sem touch FH4/4 MB.
-Nenhuma nova gravação foi executada nesta etapa.
+Próximas fases exigem decisão/recursos concretos: componentes físicos, configuração
+de rede, provedor/modelo/privacidade de voz e memória, e requisitos de dashboard/OTA.
+Primeira evolução recomendada: observar uso diário e estabilidade de longa duração;
+depois integrar MPR121/IMU quando os módulos estiverem disponíveis.
 
-Teste físico LCD concluído inicialmente: foto do verso confirmou o modelo sem
-touch; cores/borda/orientação aprovadas pelo usuário, com logs dos cinco padrões.
-A pendência de identificação física citada acima foi resolvida. Estabilidade
-prolongada e homologação do SDK limpo continuam pendentes. Próximo: avatar MVP.
-
-## Avatar MVP implementado
-
-Versão 0.2.0 gravada: olhos ciano, piscadas, olhar, feliz/concentrado/erro e RGB,
-com demo local identificada. Testes C no host PASS; 60 s de logs sem crash observado,
-heap do sistema constante. Aceite visual e teste prolongado pendentes.
-Próximo ajuste deve partir da observação visual; não adicionar sensores ou host
-antes desse aceite. SDK limpo continua pendente de homologação.
+Evidências e limitações completas: [release 0.3.0](release-0.3.0.md).

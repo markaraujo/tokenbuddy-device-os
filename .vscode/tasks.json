@@ -6,5 +6,21 @@
     "command": ". '${workspaceFolder}/tools/activate.ps1'; & '${workspaceFolder}/tools/idf.ps1' build",
     "group": {"kind": "build", "isDefault": true},
     "problemMatcher": ["$gcc"]
+  }, {
+    "label": "TokenBuddy: tests",
+    "type": "shell",
+    "command": "& '${workspaceFolder}/tools/test.ps1'",
+    "group": "test",
+    "problemMatcher": []
+  }, {
+    "label": "TokenBuddy: host start",
+    "type": "shell",
+    "command": "& '${workspaceFolder}/tools/host.ps1' start",
+    "problemMatcher": []
+  }, {
+    "label": "TokenBuddy: host stop",
+    "type": "shell",
+    "command": "& '${workspaceFolder}/tools/host.ps1' stop",
+    "problemMatcher": []
   }]
 }

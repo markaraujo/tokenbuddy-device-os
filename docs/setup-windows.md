@@ -1,94 +1,99 @@
-﻿# Setup Windows — validado em 2026-11-22
+﻿# Windows — ambiente validado
 
-Workspace: `D:\Avatar_Token`.
+Workspace atual: `D:\Avatar_Token`. Python e ferramentas globais existentes foram
+preservados; SDK/toolchain/ambiente host estão em `.tools` dentro do projeto.
 
-| Ferramenta | Versão |
+| Item | Versão/caminho |
 |---|---|
 | Windows 11 Pro | 10.0.26300, 64 bits |
 | Git | 2.52.0.windows.1 |
-| Python existente e ambiente IDF | 3.13.14 |
+| Python | 3.13.14, instalação existente preservada |
 | VS Code / extensão Espressif | 1.147.0 / 2.3.0 |
 | Codex CLI | 0.171.0 |
-| ESP-IDF | v5.5.2-dirty, commit 30aaf64524299d3bde422ca9a2848090d1bc5d0f |
+| ESP-IDF | tag limpa v5.5.2, commit 30aaf64524299d3bde422ca9a2848090d1bc5d0f |
 | GCC RISC-V | 14.2.0, esp-14.2.0_20251107 |
 | CMake / Ninja | 3.30.2 / 1.12.1 |
 | esptool | 4.14.0 |
+| LVGL / led_strip | 8.3.11 / 2.5.5, manifests e lock versionados |
+| Python SDK | .tools/espressif/python_env/idf5.5_py3.13_env/Scripts/python.exe |
+| Python host | .tools/host-env/Scripts/python.exe |
+| TinyCC host | 0.9.27, .tools/tinycc/tcc/tcc.exe |
 
-SDK: `.tools/esp-idf-v5.5.2`. Ferramentas: `.tools/espressif`.
-Python gerenciado: `.tools/espressif/python_env/idf5.5_py3.13_env/Scripts/python.exe`.
-Python original preservado. Instalação das ferramentas e Python terminou com exit 0;
-export.ps1 confirmou dependências OK. Submódulos completos, sem revisões divergentes.
-
-## Comandos
+## Terminal e build
 
 ```powershell
 . ./tools/activate.ps1
 idf.py --version
 ./tools/idf.ps1 build
 ./tools/idf.ps1 size
+./tools/test.ps1
 ```
 
-Build mínimo: exit 0, 1062 etapas, binário de 147456 bytes (0x24000),
-86% da partição de aplicação de 1 MB livre. `size`: exit 0.
-Artefato: `firmware/esp32-c6/build/tokenbuddy_device_os.bin`.
-Logs de instalação, build, tamanho e consultas do chip estão em `.tools/`.
+activate define IDF_PATH, IDF_TOOLS_PATH e IDF_TARGET apenas para o processo e
+executa export.ps1 do SDK. Wrappers validam exit code nativo; stderr informativo
+nao deve ser confundido com falha pelo Windows PowerShell ao redirecionar logs.
+Nenhum clean build é usado como recuperação genérica.
 
-Causa do erro inicial de size: Windows PowerShell interpretava stderr informativo
-como exceção por ErrorActionPreference=Stop. Wrapper corrigido para validar exit code;
-size repetido com sucesso, sem clean ou recompilação completa.
+VS Code: abrir o workspace; tarefa padrão de build e tarefas de testes/start/stop
+host preparadas. Perfil de terminal TokenBuddy ESP-IDF executa activate.ps1.
+compile_commands.json é gerado pelo build e apontado pelo workspace. Não foram
+sobrescritas configurações globais do editor. Os scripts foram executados e os
+JSONs verificados; a seleção EIM nativa da extensão não foi operada na interface.
+As opções antigas idf.espIdfPath/idf.toolsPath foram removidas pela extensão 2.x;
+o fluxo validado usa as tarefas locais, sem depender dessa seleção global.
 
-## VS Code
-
-Perfil `TokenBuddy ESP-IDF` e tarefa padrão de build usam ativação explícita local.
-JSON e sintaxe PowerShell validados. compile_commands.json foi gerado pelo build.
-A extensão 2.3.0 removeu os antigos parâmetros idf.espIdfPath/idf.toolsPath; seleção
-nativa via EIM ainda não validada na interface. Build no terminal está validado.
-
-## DNS: resolvido com autorização
-
-Causa provável: encaminhamento DNS intermitente no roteador 192.168.3.1.
-Consultas padrão expiravam; consulta direta a 1.1.1.1 funcionava. Após autorização,
-Ethernet (índice 14) foi configurada com 1.1.1.1 e 1.0.0.1. Consultas padrão,
-downloads do SDK, ferramentas, pacotes Python e demo Waveshare voltaram a funcionar.
-Snapshot anterior: `.tools/dns-before.json`.
-
-Reversão, em PowerShell administrativo:
-`Set-DnsClientServerAddress -InterfaceIndex 14 -ResetServerAddresses` (DHCP),
-ou `-ServerAddresses 192.168.3.1` para restaurar explicitamente o servidor observado.
-Nenhuma alteração de drivers, PATH global ou outras interfaces.
-
-## Hardware identificado, sem flash
-
-COM3: Espressif USB Serial/JTAG, VID 303A/PID 1001; MAC base 14:c1:9f:05:7b:ec.
-esptool identificou ESP32-C6FH8, revisão v0.2, cristal 40 MHz.
-flash_id confirmou 8 MB, fabricante 20, device 4017. Consultas tiveram exit 0 e
-reiniciaram a placa; não gravaram firmware persistente.
-
-A capacidade real diverge dos 4 MB previstos para o modelo. Manter configuração
-conservadora de 4 MB no firmware mínimo até confirmar a revisão física da placa.
-Não inferir modelo Waveshare apenas pelo chip. Flash e teste de boot pendentes.
-Após confirmação explícita da placa, porta e gravação:
+## Reprodução da instalação
 
 ```powershell
+$env:IDF_TOOLS_PATH = "$PWD/.tools/espressif"
+git clone --branch v5.5.2 --depth 1 --shallow-submodules --recursive https://github.com/espressif/esp-idf.git .tools/esp-idf-v5.5.2
+& ./.tools/esp-idf-v5.5.2/install.ps1 esp32c6
 . ./tools/activate.ps1
-Push-Location firmware/esp32-c6
-idf.py -p COM3 flash monitor
-Pop-Location
+./tools/host.ps1 setup
 ```
 
-## Limitações antes de homologar o SDK
+TinyCC foi obtido do servidor de releases indicado pelo site do projeto;
+procedência/hash e comando de teste em avatar-mvp.md. O host usa dependências
+fixadas em services/core/requirements.lock. Não instalar Python global alternativo.
 
-Foi detectada diferença local em
-`components/bt/common/ble_log/extension/log_compression/CMakeLists.txt`:
-adição de ble_log_compression.c a LOG_COMPRESS_SRCS. Origem não determinada.
-Nenhuma correção automática aplicada; diff preservado em `.tools/sdk-local-diff.patch`.
-O build passou com esse SDK, mas v5.5.2 oficial intacto e demo LCD ainda não estão
-homologados. Revisar essa diferença antes de aprovar a base para produção.
+## Gravação deliberada
 
-Demo oficial baixado em `.tools/waveshare-demo`; LVGL incluído 8.3.11,
-ST7789T customizado, SPI 12 MHz e offset X=34/Y=0. Não compilado nem gravado.
+Parar o host antes de usar a COM3. Conferir nome/revisão física da placa.
 
-Fontes oficiais utilizadas:
+```powershell
+./tools/host.ps1 stop
+./tools/flash.ps1 -Port COM3 -ExpectedMac 14:c1:9f:05:7b:ec -Confirmed
+./tools/host.ps1 start
+```
+
+O script exige confirmação explícita, tag limpa, ESP32-C6, MAC e flash 8 MB;
+nenhum erase_flash completo, gravação de eFuse ou mudança de driver é executado.
+O firmware atual destina-se à unidade sem touch de 8 MB validada, não à variante
+Touch/JD9853 nem automaticamente às versões com flash de 4 MB.
+
+## Evidências e histórico de recuperação
+
+Build mínimo, demo Waveshare e firmware integrado compilaram. Flash, logs e LCD
+foram testados no dispositivo; relatórios em .tools e documentação de validação.
+
+A instalação inicialmente encontrou DNS intermitente no roteador 192.168.3.1.
+Após autorização, somente Ethernet (índice 14) passou a usar 1.1.1.1/1.0.0.1;
+downloads voltaram a funcionar. Snapshot em .tools/dns-before.json. Reversão:
+`Set-DnsClientServerAddress -InterfaceIndex 14 -ResetServerAddresses` (DHCP), ou
+`-ServerAddresses 192.168.3.1` para restaurar explicitamente o servidor observado.
+Isso exige PowerShell administrativo; nenhuma outra interface foi alterada.
+
+A instalação SDK tinha uma diferença local em LOG_COMPRESS_SRCS. Antes da
+restauração, conteúdo e diff foram preservados em .tools/sdk-local-CMakeLists-preserved.txt
+e .tools/sdk-local-diff-before-restore.patch. Somente esse arquivo foi restaurado
+à tag, sem limpar build. SDK agora limpo; firmware e demo oficial recompilaram.
+Origem da diferença inicial não foi determinada. A validação do SDK refere-se à
+combinação desta placa, driver e versões testadas, não a todas as APIs do SDK.
+
+Git já estava inicializado pelo usuário da sandbox. Comandos usam exceção de
+safe.directory apenas no processo, sem alterar configuração global.
+
+Fontes:
 - https://docs.espressif.com/projects/esp-idf/en/v5.5.2/esp32c6/get-started/windows-setup.html
 - https://github.com/espressif/esp-idf/tree/v5.5.2
 - https://www.waveshare.com/wiki/ESP32-C6-LCD-1.47

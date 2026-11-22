@@ -6,5 +6,11 @@ $env:IDF_TARGET = 'esp32c6'
 if (-not (Test-Path "$env:IDF_PATH/export.ps1")) {
     throw 'SDK local ausente. Consulte docs/setup-windows.md.'
 }
-. "$env:IDF_PATH/export.ps1"
-if ($LASTEXITCODE -ne 0) { throw 'Falha ao ativar ESP-IDF.' }
+$activationPreference = $ErrorActionPreference
+try {
+    # SDK writes activation progress to stderr, especially visible with *> logs.
+    $ErrorActionPreference = 'Continue'
+    . "$env:IDF_PATH/export.ps1"
+    $activationExit = $LASTEXITCODE
+} finally { $ErrorActionPreference = $activationPreference }
+if ($activationExit -ne 0) { throw 'Falha ao ativar ESP-IDF.' }

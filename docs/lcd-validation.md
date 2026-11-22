@@ -1,4 +1,6 @@
-﻿# Validação do LCD — candidato sem touch
+# Validação do LCD — candidato sem touch
+
+Registro histórico do primeiro teste. LCD aprovado; estado atual: [release 0.3.0](release-0.3.0.md).
 
 ## Evidência de compilação
 

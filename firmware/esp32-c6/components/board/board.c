@@ -6,6 +6,7 @@
 #include "led_strip.h"
 
 static led_strip_handle_t rgb;
+bool board_boot_pressed(void) {return gpio_get_level(GPIO_NUM_9)==0;}
 
 void board_brightness(unsigned percent)
 {
@@ -23,6 +24,9 @@ void board_rgb(unsigned red, unsigned green, unsigned blue)
 esp_lcd_panel_handle_t board_init(esp_lcd_panel_io_color_trans_done_cb_t done, void *context)
 {
     /* Non-touch board: validated physically. SD shares SPI; never mount it here. */
+    const gpio_config_t boot={.pin_bit_mask=1ULL<<9,.mode=GPIO_MODE_INPUT,
+        .pull_up_en=GPIO_PULLUP_ENABLE,.intr_type=GPIO_INTR_DISABLE};
+    ESP_ERROR_CHECK(gpio_config(&boot));
     ESP_ERROR_CHECK(gpio_set_direction(GPIO_NUM_4, GPIO_MODE_OUTPUT));
     ESP_ERROR_CHECK(gpio_set_level(GPIO_NUM_4, 1));
     const ledc_timer_config_t timer = {.speed_mode=LEDC_LOW_SPEED_MODE,

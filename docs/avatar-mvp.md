@@ -1,4 +1,6 @@
-﻿# Avatar MVP — TokenBuddy Device OS 0.2.0
+# Avatar MVP — TokenBuddy Device OS 0.2.0
+
+Registro histórico da versão 0.2.0. Estado atual: [release 0.3.0](release-0.3.0.md).
 
 ## Implementação
 

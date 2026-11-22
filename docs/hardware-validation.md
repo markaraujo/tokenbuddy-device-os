@@ -93,3 +93,15 @@ estados, olhos e RGB. Build e flash concluídos com hashes verificados. Testes d
 comportamento passaram no Windows e no boot. Captura serial de 60 s registrou os
 quatro estados e 12 amostras constantes de heap (396888 bytes), sem crash observado.
 Confirmação visual do avatar/LED ainda pendente. [Detalhes](avatar-mvp.md).
+
+## MVP 0.3.0 integrado — resultado final
+
+SDK restaurado à tag limpa v5.5.2 com diff anterior preservado; firmware integrado
+recompilado e gravado com hashes verificados. BOOT GPIO9 com debounce, cinco telas,
+dez estados, NVS, USB/host e métricas reais adicionados. Testes C/8 testes Python
+passaram, assim como protocolo real, offline, mensagens inválidas e reset/NVS.
+Observação final de 180,4 s: 90 amostras, heap 374464 constante, LVGL livre
+26180–26232, fragmentação até 1%, stack mínima 3640; nenhum reset na janela.
+Houve interrupção USB numa observação anterior, com causa não determinada;
+as capturas/limitações estão registradas em release-0.3.0.md.
+Não foram testados sensores ausentes, Wi-Fi ou áudio. [Entrega](release-0.3.0.md).

@@ -29,5 +29,6 @@ bool behavior_tests(void)
     return true;
 }
 #ifdef TOKENBUDDY_HOST_TEST
-int main(void) {return behavior_tests()?0:1;}
+bool control_tests(void);
+int main(void) {return behavior_tests() && control_tests()?0:1;}
 #endif
