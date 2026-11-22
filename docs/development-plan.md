@@ -19,3 +19,11 @@ Teste físico LCD concluído inicialmente: foto do verso confirmou o modelo sem
 touch; cores/borda/orientação aprovadas pelo usuário, com logs dos cinco padrões.
 A pendência de identificação física citada acima foi resolvida. Estabilidade
 prolongada e homologação do SDK limpo continuam pendentes. Próximo: avatar MVP.
+
+## Avatar MVP implementado
+
+Versão 0.2.0 gravada: olhos ciano, piscadas, olhar, feliz/concentrado/erro e RGB,
+com demo local identificada. Testes C no host PASS; 60 s de logs sem crash observado,
+heap do sistema constante. Aceite visual e teste prolongado pendentes.
+Próximo ajuste deve partir da observação visual; não adicionar sensores ou host
+antes desse aceite. SDK limpo continua pendente de homologação.

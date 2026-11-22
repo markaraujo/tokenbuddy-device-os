@@ -1,27 +1,25 @@
 ﻿# TokenBuddy AI
 
-TokenBuddy Device OS para Waveshare ESP32-C6-LCD-1.47 sem touch.
+TokenBuddy Device OS 0.2.0 para Waveshare ESP32-C6-LCD-1.47 sem touch.
 Workspace: `D:\Avatar_Token`.
 
-Ambiente local instalado; firmware mínimo compilado para ESP32-C6 (147456 bytes).
-COM3 identificada como ESP32-C6FH8 com flash 8 MB. Nenhum flash realizado.
-SDK candidato v5.5.2-dirty; diferença local preservada para revisão antes de homologar.
+Avatar MVP gravado na COM3: olhos ciano, piscadas, movimento do olhar e ciclo local
+repouso/feliz/concentrado/erro, com RGB integrado. Não há conexão com agentes.
+LCD e pinagem validados na etapa anterior. Backup original de 8 MB preservado
+localmente. SDK candidato continua 5.5.2-dirty; homologação limpa pendente.
 
 ```powershell
+./tools/test-behavior.ps1
 . ./tools/activate.ps1
 ./tools/idf.ps1 build
 ./tools/idf.ps1 size
 ```
 
 VS Code: tarefa padrão de build ou perfil de terminal `TokenBuddy ESP-IDF`.
-Consulte [setup Windows](docs/setup-windows.md), [hardware](docs/hardware.md) e [plano](docs/development-plan.md).
+Nunca gravar sem reconfirmar dispositivo e autorização. Não montar/formatar microSD.
 
-Primeiro flash autorizado concluído na COM3; hashes verificados e quatro heartbeats
-TokenBuddy recebidos, heap livre constante de 464108 bytes em cerca de 20 s.
-Backup completo anterior preservado localmente. Veja [validação](docs/hardware-validation.md)
-e [referência visual](docs/ui-reference.md). LCD próprio ainda não inicializado.
-
-LCD validado em hardware: teste de cinco cores, borda e orientação confirmados
-pelo usuário; logs com heap estável durante captura de 25 segundos.
-Firmware atual é o teste LCD. Próximo marco: avatar animado.
-Veja [evidências do LCD](docs/lcd-validation.md).
+- [Avatar, testes e limitações](docs/avatar-mvp.md)
+- [Arquitetura](docs/architecture.md)
+- [Validação LCD](docs/lcd-validation.md)
+- [Setup Windows](docs/setup-windows.md)
+- [Referência visual](docs/ui-reference.md)

@@ -10,3 +10,7 @@
 - Não apagar arquivos, alterar drivers ou configurações globais sem autorização.
 - Registrar causa provável antes de corrigir; máximo de duas tentativas sem evidência nova. Não limpar build como solução genérica.
 - Não declarar build, flash ou teste físico sem resultado real. Não adicionar módulos futuros vazios.
+
+- Arquitetura atual: board -> display/LVGL; behavior em C puro -> avatar; main coordena a demo local.
+- Testes host: `./tools/test-behavior.ps1` (TinyCC portátil local; docs/avatar-mvp.md).
+- Dependências fixadas: LVGL 8.3.11 e led_strip 2.5.5, registrar dependencies.lock.

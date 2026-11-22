@@ -85,3 +85,11 @@ O teste confirma o funcionamento inicial da pinagem e do driver ST7789 nesta
 unidade, apesar da diferença FH8/8 MB frente à documentação FH4/4 MB.
 Não houve teste de touch, IMU, RGB, microSD ou teste prolongado de estabilidade.
 Detalhes e logs: [validação LCD](lcd-validation.md).
+
+## Avatar 0.2.0
+
+Firmware principal agora integra board/display/avatar/behavior e demonstra quatro
+estados, olhos e RGB. Build e flash concluídos com hashes verificados. Testes de
+comportamento passaram no Windows e no boot. Captura serial de 60 s registrou os
+quatro estados e 12 amostras constantes de heap (396888 bytes), sem crash observado.
+Confirmação visual do avatar/LED ainda pendente. [Detalhes](avatar-mvp.md).
