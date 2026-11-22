@@ -15,3 +15,8 @@ SDK candidato v5.5.2-dirty; diferença local preservada para revisão antes de h
 
 VS Code: tarefa padrão de build ou perfil de terminal `TokenBuddy ESP-IDF`.
 Consulte [setup Windows](docs/setup-windows.md), [hardware](docs/hardware.md) e [plano](docs/development-plan.md).
+
+Primeiro flash autorizado concluído na COM3; hashes verificados e quatro heartbeats
+TokenBuddy recebidos, heap livre constante de 464108 bytes em cerca de 20 s.
+Backup completo anterior preservado localmente. Veja [validação](docs/hardware-validation.md)
+e [referência visual](docs/ui-reference.md). LCD próprio ainda não inicializado.

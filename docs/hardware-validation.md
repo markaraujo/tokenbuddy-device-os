@@ -44,3 +44,32 @@ Logs brutos locais em .tools/hardware-security.log, .tools/flash-id.log,
 Próximo critério: correlacionar identificação física e esquema, confirmar LCD/LED
 visualmente e preparar teste específico. Primeiro flash ainda requer confirmação
 explícita para a COM3 e o firmware escolhido.
+
+## Primeiro flash TokenBuddy e execução real
+
+Após autorização explícita para a COM3, identidade MAC/chip reconfirmada.
+Backup completo anterior: .tools/device-before-tokenbuddy-8mb.bin, 8388608 bytes;
+esptool read_flash terminou com exit 0. SHA256 em .tools/backup-flash.sha256.txt.
+Backup mantido local, fora do Git; pode conter dados do firmware anterior.
+
+`idf.py -C firmware/esp32-c6 -p COM3 flash` terminou com exit 0.
+Bootloader (22592 bytes), aplicação (147456 bytes) e tabela (3072 bytes)
+gravados e hashes verificados pelo esptool. Sem erase_flash completo.
+Imagem mínima conserva a configuração de 4 MB; hardware físico continua sendo 8 MB.
+LCD e LED não inicializados por este firmware.
+
+Primeira captura após reset perdeu a interface USB (ClearCommError). Captura
+seguinte ficou vazia; usuário informou acionamento acidental de botão, trazendo
+nova evidência para possível alteração do estado de boot. Console USB confirmado
+no sdkconfig; nenhuma alteração de código como tentativa de correção.
+Executado esptool run com hard_reset, exit 0. Reaberta COM3, capturados quatro
+heartbeats TokenBuddy nos tempos 5090/10090/15090/20090 ms, heap livre constante
+464108 bytes. Nenhum crash observado nessa janela de aproximadamente 20 segundos.
+Isso valida execução e atividade periódica; não substitui teste longo de estabilidade.
+Logs: .tools/first-flash.log, .tools/recover-button-reset.log,
+.tools/tokenbuddy-first-boot.log. Banner inicial não capturado; execução confirmada
+pelas mensagens exclusivas do firmware mínimo. LCD com firmware próprio pendente.
+
+Referência visual do usuário localizada em Downloads e preservada no repositório:
+[Diretrizes da UI](ui-reference.md). Próximo marco é validar driver/pinagem LCD
+antes de integrar o avatar ciano e animações da referência.
