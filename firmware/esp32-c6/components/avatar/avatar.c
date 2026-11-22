@@ -102,9 +102,8 @@ void avatar_init(void)
     lv_obj_set_style_text_color(title,lv_color_hex(0x7bf4ff),0);
     lv_obj_align(title,LV_ALIGN_TOP_MID,0,25);
     lv_obj_t *subtitle=lv_label_create(root);lv_label_set_text(subtitle,"SEU COMPANHEIRO");
-    lv_obj_set_style_text_font(subtitle,&lv_font_montserrat_10,0);
-    lv_obj_set_style_text_letter_space(subtitle,1,0);
-    lv_obj_set_style_text_color(subtitle,lv_color_hex(0x5c839c),0);
+    lv_obj_set_style_text_font(subtitle,&lv_font_montserrat_12,0);
+    lv_obj_set_style_text_color(subtitle,lv_color_hex(0xc5dfed),0);
     lv_obj_align(subtitle,LV_ALIGN_TOP_MID,0,52);
     face=lv_obj_create(root);lv_obj_remove_style_all(face);
     lv_obj_set_size(face,172,72);lv_obj_set_pos(face,0,108);
@@ -115,21 +114,20 @@ void avatar_init(void)
     lv_obj_set_style_text_color(greeting,lv_color_hex(0xe4f2ff),0);
     lv_obj_align(greeting,LV_ALIGN_BOTTOM_MID,0,-83);
     status=lv_label_create(root);lv_label_set_text(status,"REPOUSO");
-    lv_obj_set_style_text_font(status,&lv_font_montserrat_10,0);
-    lv_obj_set_style_text_letter_space(status,1,0);
+    lv_obj_set_style_text_font(status,&lv_font_montserrat_12,0);
     lv_obj_set_style_text_color(status,lv_color_hex(0x00e5ff),0);
     lv_obj_set_style_bg_color(status,lv_color_hex(0x0b2639),0);
     lv_obj_set_style_bg_opa(status,LV_OPA_COVER,0);
     lv_obj_set_style_pad_hor(status,10,0);lv_obj_set_style_pad_ver(status,5,0);
     lv_obj_set_style_radius(status,10,0);lv_obj_align(status,LV_ALIGN_BOTTOM_MID,0,-44);
     connection=lv_label_create(root);lv_label_set_text(connection,"USB OFFLINE");
-    lv_obj_set_style_text_font(connection,&lv_font_montserrat_10,0);
-    lv_obj_set_style_text_color(connection,lv_color_hex(0x63859b),0);
+    lv_obj_set_style_text_font(connection,&lv_font_montserrat_12,0);
+    lv_obj_set_style_text_color(connection,lv_color_hex(0xc5dfed),0);
     lv_obj_align(connection,LV_ALIGN_BOTTOM_MID,0,-20);
 }
 void avatar_visible(bool visible)
 {
-    if (visible) {lv_obj_clear_flag(root,LV_OBJ_FLAG_HIDDEN);lv_obj_fade_in(root,160,0);}
+    if (visible) {lv_obj_clear_flag(root,LV_OBJ_FLAG_HIDDEN);lv_obj_set_style_opa(root,LV_OPA_COVER,0);}
     else lv_obj_add_flag(root,LV_OBJ_FLAG_HIDDEN);
 }
 void avatar_context(bool online,bool demo)

@@ -1,9 +1,13 @@
-param([switch]$VisualOnlySinceValidation)
+param(
+    [switch]$VisualOnlySinceValidation,
+    [ValidatePattern('^[a-z0-9-]*$')][string]$Revision=''
+)
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot -Parent
 $version='0.3.0'
 $build=Join-Path $root 'firmware/esp32-c6/build'
-$output=Join-Path $root ".artifacts/tokenbuddy-$version"
+$suffix=if ($Revision) {"-$Revision"} else {''}
+$output=Join-Path $root ".artifacts/tokenbuddy-$version$suffix"
 $archive="$output.zip"
 if ((Test-Path $output) -or (Test-Path $archive)) {throw 'Pacote existente; preservar artefatos anteriores.'}
 $dirty=git -c "safe.directory=$root" -C $root status --porcelain
@@ -46,7 +50,7 @@ $commit=git -c "safe.directory=$root" -C $root rev-parse HEAD
 $files=Get-ChildItem "$output/firmware" -File -Recurse | ForEach-Object {
     @{path=$_.FullName.Substring($output.Length+1).Replace('\','/');bytes=$_.Length;sha256=(Get-FileHash $_.FullName -Algorithm SHA256).Hash}
 }
-@{name='TokenBuddy Device OS';version=$version;source_commit=$commit;sdk=$sdkVersion;
+@{name='TokenBuddy Device OS';version=$version;revision=$Revision;source_commit=$commit;sdk=$sdkVersion;
     board='ESP32-C6-LCD-1.47 non-touch; validated FH8/8MB unit';flash_mb=8;files=@($files);
     hardware_validation= $(if ($VisualOnlySinceValidation) {'FUNCTIONAL_BASELINE_PASS_VISUAL_REVISION_NOT_RETESTED'} else {'PASS'});
     recovery_validation='PASS_ON_FUNCTIONAL_BASELINE';visual_revision=[bool]$VisualOnlySinceValidation} | ConvertTo-Json -Depth 5 | Set-Content -Encoding UTF8 "$output/manifest.json"

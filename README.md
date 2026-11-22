@@ -72,3 +72,7 @@ Refinamento visual posterior: cards neon, borda externa fina, margens consistent
 fontes hierárquicas e efeitos suaves do avatar. Build/gravação da revisão visual
 verificados; teste longo é da baseline funcional, sem repetição a pedido do usuário.
 O pacote identifica essa distinção em manifest e validation/visual-revision.txt.
+
+Revisão posterior de [legibilidade](docs/readability-0.3.0.md): fontes auxiliares
+maiores, textos de alto contraste, opacidade integral e remoção do fade de tela.
+Pacote separado com sufixo legibilidade preserva a entrega visual anterior.
