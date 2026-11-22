@@ -1,0 +1,10 @@
+{
+  "terminal.integrated.profiles.windows": {
+    "TokenBuddy ESP-IDF": {
+      "source": "PowerShell",
+      "args": ["-NoExit", "-Command", ". '${workspaceFolder}/tools/activate.ps1'"]
+    }
+  },
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/firmware/esp32-c6/build/compile_commands.json",
+  "idf.buildPath": "${workspaceFolder}/firmware/esp32-c6/build"
+}

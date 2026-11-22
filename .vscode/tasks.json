@@ -1,0 +1,10 @@
+{
+  "version": "2.0.0",
+  "tasks": [{
+    "label": "TokenBuddy: build (terminal ESP-IDF)",
+    "type": "shell",
+    "command": ". '${workspaceFolder}/tools/activate.ps1'; & '${workspaceFolder}/tools/idf.ps1' build",
+    "group": {"kind": "build", "isDefault": true},
+    "problemMatcher": ["$gcc"]
+  }]
+}
