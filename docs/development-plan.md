@@ -6,3 +6,11 @@
 4. Avatar MVP e máquina de estados independente do hardware, com testes de transições e prioridades no host.
 
 Nenhum flash, LCD ou teste físico de firmware próprio foi aprovado. Sem sensores ou software host antes de validar a base.
+
+## Avanço da Fase 2
+
+Demo Waveshare original e teste LCD isolado compilaram no SDK candidato.
+[Teste e critérios](lcd-validation.md): fonte versionada, brilho inicial 30%,
+sem montagem/formatação microSD. Teste físico aguarda nome/revisão da placa,
+pois a unidade FH8/8 MB diverge do esquema sem touch FH4/4 MB.
+Nenhuma nova gravação foi executada nesta etapa.
