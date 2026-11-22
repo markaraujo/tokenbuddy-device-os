@@ -20,3 +20,8 @@ Primeiro flash autorizado concluído na COM3; hashes verificados e quatro heartb
 TokenBuddy recebidos, heap livre constante de 464108 bytes em cerca de 20 s.
 Backup completo anterior preservado localmente. Veja [validação](docs/hardware-validation.md)
 e [referência visual](docs/ui-reference.md). LCD próprio ainda não inicializado.
+
+LCD validado em hardware: teste de cinco cores, borda e orientação confirmados
+pelo usuário; logs com heap estável durante captura de 25 segundos.
+Firmware atual é o teste LCD. Próximo marco: avatar animado.
+Veja [evidências do LCD](docs/lcd-validation.md).

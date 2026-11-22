@@ -14,3 +14,8 @@ Demo Waveshare original e teste LCD isolado compilaram no SDK candidato.
 sem montagem/formatação microSD. Teste físico aguarda nome/revisão da placa,
 pois a unidade FH8/8 MB diverge do esquema sem touch FH4/4 MB.
 Nenhuma nova gravação foi executada nesta etapa.
+
+Teste físico LCD concluído inicialmente: foto do verso confirmou o modelo sem
+touch; cores/borda/orientação aprovadas pelo usuário, com logs dos cinco padrões.
+A pendência de identificação física citada acima foi resolvida. Estabilidade
+prolongada e homologação do SDK limpo continuam pendentes. Próximo: avatar MVP.

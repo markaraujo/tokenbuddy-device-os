@@ -73,3 +73,15 @@ pelas mensagens exclusivas do firmware mínimo. LCD com firmware próprio penden
 Referência visual do usuário localizada em Downloads e preservada no repositório:
 [Diretrizes da UI](ui-reference.md). Próximo marco é validar driver/pinagem LCD
 antes de integrar o avatar ciano e animações da referência.
+
+## Resultado físico do LCD
+
+Identificação do verso confirmada por foto: ESP32-C6-LCD-1.47 sem inscrição Touch;
+[foto](reference/board-back.jpeg). Revisão da PCB ainda não identificada.
+Teste LCD isolado gravado na COM3 e hashes verificados. Usuário confirmou cores,
+orientação, borda e texto corretos. Logs registraram todos os cinco padrões e
+heap constante de 400964 bytes numa captura de 25 segundos, sem crash observado.
+O teste confirma o funcionamento inicial da pinagem e do driver ST7789 nesta
+unidade, apesar da diferença FH8/8 MB frente à documentação FH4/4 MB.
+Não houve teste de touch, IMU, RGB, microSD ou teste prolongado de estabilidade.
+Detalhes e logs: [validação LCD](lcd-validation.md).

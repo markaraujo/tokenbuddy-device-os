@@ -69,3 +69,29 @@ Build concluído com exit 0: `.tools/lcd-validation/build/tokenbuddy_lcd_validat
 420704 bytes. Log `.tools/build-lcd-validation.log`. Script de preparação passou
 na análise de sintaxe PowerShell. Nenhum flash ou teste físico LCD executado.
 Firmware mínimo TokenBuddy permanece na COM3.
+
+## Identificação física e teste LCD concluídos
+
+Foto fornecida em Downloads: `WhatsApp Image 2026-11-22 at 15.58.45.jpeg`.
+Cópia versionada: [verso da placa](reference/board-back.jpeg).
+Inscrição legível ESP32-C6-LCD-1.47, layout correspondente à placa sem touch.
+Revisão de PCB não legível/identificada. Capacidade real permanece FH8/8 MB;
+isso não altera o nome impresso nem autoriza presumir componentes touch.
+
+Teste isolado ST7789/LVGL 8.3.11 gravado na COM3, exit 0, hashes verificados.
+read_mac confirmou a mesma MAC base 14:c1:9f:05:7b:ec. Houve erro de binding de
+parâmetros em Select-String no comando auxiliar; a comparação foi conferida no
+log e refeita com -LiteralPath e -Pattern explícitos. Não houve divergência de MAC.
+
+Captura serial de 25 segundos: oito mensagens, padrões 0/1/2/3/4 presentes,
+heap livre constante de 400964 bytes; nenhum crash observado nessa janela.
+Usuário confirmou explicitamente que cores, orientação, texto e borda estavam
+corretos. Isso valida inicialmente a pinagem e inicialização ST7789 usadas
+na unidade física. Não equivale a teste prolongado nem prova ausência de vazamento.
+LCD operando com backlight 30%, SPI 12 MHz, offset 34/0, RGB565 e LVGL 8.3.11.
+Logs locais: .tools/flash-lcd-validation.log e .tools/lcd-validation-serial.log.
+
+Firmware atual: teste LCD, substituindo o mínimo sem display. Backup anterior
+de 8 MB preservado em .tools/device-before-tokenbuddy-8mb.bin, fora do Git.
+Próximo marco: integrar o driver validado em board/display e criar olhos ciano,
+piscadas e expressões do avatar conforme a referência visual.

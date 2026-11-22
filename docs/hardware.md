@@ -26,3 +26,8 @@ pendente. O demo oficial foi baixado e revisado parcialmente: LVGL 8.3.11,
 ST7789T próprio, offset X=34/Y=0, SPI 12 MHz, espelhamento horizontal.
 Não houve teste LCD ou gravação. Informações anteriores de demo não baixado foram
 superadas por esta verificação; revisão do esquemático permanece pendente.
+
+Validação física posterior: foto confirmou ESP32-C6-LCD-1.47; teste ST7789
+teve cores, borda e orientação confirmadas pelo usuário. Capacidade física real:
+8 MB. Pinagem LCD do exemplo sem touch validada nesta unidade; não extrapolar
+para outras revisões. Ver docs/lcd-validation.md.
