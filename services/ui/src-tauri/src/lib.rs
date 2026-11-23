@@ -219,32 +219,8 @@ pub fn run() {
                     }
                     _ => {}
                 })
-                .on_tray_icon_event(|tray, event| {
-                    if let TrayIconEvent::Click {
-                        button: MouseButton::Left,
-                        button_state: MouseButtonState::Up,
-                        ..
-                    } = event
-                    {
-                        let app = tray.app_handle();
-                        if let Some(win) = app.get_webview_window("main") {
-                            // Alterna visível/oculto ao clicar na tray.
-                            if win.is_visible().unwrap_or(true) {
-                                let _ = win.hide();
-                            } else {
-                                let _ = win.show();
-                                let _ = win.set_focus();
-                            }
-                        }
-                    }
-                })
-                .build(app)?;
 
-            // Janela começa oculta: a app vive na tray (Windows).
-            #[cfg(target_os = "windows")]
-            if let Some(win) = app.get_webview_window("main") {
-                let _ = win.hide();
-            }
+                .build(app)?;
 
             Ok(())
         })
