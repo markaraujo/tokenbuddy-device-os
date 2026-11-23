@@ -57,6 +57,18 @@ if ($Action -eq 'stop') {
 
 if ($existing) { Write-Output 'Host ja esta ativo.'; exit 0 }
 
-$process=Start-Process -FilePath $serverExe -WorkingDirectory $root -WindowStyle Hidden -PassThru -RedirectStandardOutput "$root/.tools/host.stdout.log" -RedirectStandardError "$root/.tools/host.stderr.log"
-Set-Content $pidPath $process.Id
-Write-Output "Host iniciado: PID $($process.Id), API 127.0.0.1:8765."
+# IA Local (Unsloth/llama.cpp): usa a mesma chave do OpenCode, se definida.
+$envVars=@{}
+if ($env:UNSLOTH_API_KEY) { $envVars['UNSLOTH_API_KEY']=$env:UNSLOTH_API_KEY }
+
+$psi=New-Object System.Diagnostics.ProcessStartInfo
+$psi.FileName=$serverExe
+$psi.WorkingDirectory=$root
+$psi.UseShellExecute=$false
+$psi.RedirectStandardOutput=$true
+$psi.RedirectStandardError=$true
+foreach ($k in $envVars.Keys) { $psi.EnvironmentVariables[$k]=$envVars[$k] }
+
+$proc=[System.Diagnostics.Process]::Start($psi)
+Set-Content $pidPath $proc.Id
+Write-Output "Host iniciado: PID $($proc.Id), API 127.0.0.1:8765."

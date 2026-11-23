@@ -101,72 +101,83 @@ pub fn run_command(arguments: &[String], agent: &str, publish: &dyn Fn(Value)) -
     code
 }
 
-/// Executa `ollama run <model> <prompt>` e lê o uso de tokens da API local.
+/// IA local via API OpenAI-compatible (Unsloth/llama.cpp ou LM Studio).
+#[derive(Clone)]
+pub struct LocalAgentConfig {
+    /// Ex.: `http://127.0.0.1:8888/v1`
+    pub base_url: String,
+    /// Model ID completo, ex.: `unsloth/Qwen3.8-27B-GGUF`.
+    pub model: String,
+    /// Chave Bearer (vazia = sem header).
+    pub api_key: String,
+}
+
+/// Envia um chat completion para a IA local e publica eventos de agente.
 ///
-/// O processo CLI não expõe contagem de tokens; o host consulta
-/// `GET http://127.0.0.1:11434/api/ps` antes e depois para atribuir o delta
-/// ao modelo em execução. Se a API não estiver acessível, publica sem tokens.
-pub fn run_ollama(model: &str, prompt: &str, publish: &dyn Fn(Value)) -> i32 {
+/// Os tokens vêm direto da resposta (`usage.prompt_tokens` /
+/// `usage.completion_tokens`) — não há inferência nem delta. Retorna 0 em
+/// sucesso, -1 se a API não responder ou o modelo falhar.
+pub fn run_local_agent(config: &LocalAgentConfig, prompt: &str, publish: &dyn Fn(Value)) -> i32 {
     let task = uuid::Uuid::new_v4().simple().to_string();
     publish(json!({"event": "agent.started", "agent": "IA Local", "task_id": task}));
 
-    // Linha de base antes do run (tokens acumulados no modelo, se já carregado).
-    let baseline = fetch_ollama_ps()
-        .and_then(|ps| model_tokens(&ps, model))
-        .unwrap_or(0);
+    let url = format!("{}/chat/completions", config.base_url.trim_end_matches('/'));
+    let body = json!({
+        "model": config.model,
+        "messages": [{"role": "user", "content": prompt}],
+        "stream": false
+    });
 
-    let args: Vec<String> = vec![
-        "ollama".to_string(),
-        "run".to_string(),
-        model.to_string(),
-        prompt.to_string(),
-    ];
-    let code = Command::new(&args[0])
-        .args(&args[1..])
-        .status()
-        .map(|s| s.code().unwrap_or(-1))
-        .unwrap_or(-1);
-
-    // Estado final: delta = final - baseline (nunca negativo).
-    let final_tokens = fetch_ollama_ps()
-        .and_then(|ps| model_tokens(&ps, model));
-    let input_tokens = final_tokens.map(|f| f.saturating_sub(baseline));
-
-    publish(json!({
-        "event": if code == 0 { "agent.completed" } else { "agent.failed" },
-        "agent": "IA Local",
-        "task_id": task,
-        "input_tokens": input_tokens,
-        "output_tokens": input_tokens.and(Some(0)), // placeholder: /api/ps não separa output
-    }));
-    code
-}
-
-/// GET http://127.0.0.1:11434/api/ps — retorna o JSON bruto ou None.
-fn fetch_ollama_ps() -> Option<Value> {
-    let client = reqwest::blocking::Client::builder()
-        .timeout(std::time::Duration::from_secs(2))
+    let client = match reqwest::blocking::Client::builder()
+        .timeout(std::time::Duration::from_secs(600))
         .build()
-        .ok()?;
-    let resp = client
-        .get("http://127.0.0.1:11434/api/ps")
-        .send()
-        .ok()?;
-    if !resp.status().is_success() {
-        return None;
-    }
-    resp.json::<Value>().ok()
-}
+    {
+        Ok(c) => c,
+        Err(_) => {
+            publish(json!({"event": "agent.failed", "agent": "IA Local", "task_id": task}));
+            return -1;
+        }
+    };
 
-/// Extrai `tokens` do modelo listado em `/api/ps`.
-fn model_tokens(ps: &Value, model: &str) -> Option<u64> {
-    let models = ps.get("models")?.as_array()?;
-    for m in models {
-        if m.get("name").and_then(|v| v.as_str()) == Some(model) {
-            return m.get("tokens").and_then(|v| v.as_u64());
+    let mut req = client.post(&url).json(&body);
+    if !config.api_key.is_empty() {
+        req = req.bearer_auth(config.api_key.clone());
+    }
+
+    match req.send() {
+        Ok(resp) if resp.status().is_success() => match resp.json::<Value>() {
+            Ok(value) => {
+                let input = value["usage"]["prompt_tokens"].as_u64();
+                let output = value["usage"]["completion_tokens"].as_u64();
+                publish(json!({
+                    "event": "agent.completed",
+                    "agent": "IA Local",
+                    "task_id": task,
+                    "input_tokens": input,
+                    "output_tokens": output,
+                }));
+                0
+            }
+            Err(_) => {
+                publish(json!({"event": "agent.failed", "agent": "IA Local", "task_id": task}));
+                -1
+            }
+        },
+        Ok(resp) => {
+            let status = resp.status();
+            publish(json!({
+                "event": "agent.failed",
+                "agent": "IA Local",
+                "task_id": task,
+                "error": format!("HTTP {status}"),
+            }));
+            -1
+        }
+        Err(_) => {
+            publish(json!({"event": "agent.failed", "agent": "IA Local", "task_id": task}));
+            -1
         }
     }
-    None
 }
 
 #[cfg(test)]
