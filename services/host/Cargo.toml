@@ -1,0 +1,10 @@
+[workspace]
+resolver = "2"
+members = ["tokenbuddy-core", "tokenbuddy-server", "tokenbuddy-cli"]
+
+[workspace.package]
+version = "0.3.0"
+edition = "2021"
+
+[workspace.dependencies]
+serde_json = "1"

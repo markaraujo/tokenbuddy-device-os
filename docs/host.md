@@ -34,7 +34,7 @@ Status host distingue porta conectada de dados recentes e mantém os últimos 16
 ## Eventos de processos reais
 
 ```powershell
-./tools/tokenbuddy.ps1 run --agent Build -- .tools/host-env/Scripts/python.exe -c "print('ok')"
+./tools/tokenbuddy.ps1 run --agent Build -- powershell -c "Write-Output 'ok'"
 ```
 
 O wrapper acompanha o processo solicitado: started antes do início, completed com
@@ -70,9 +70,9 @@ foi validado usando subprocessos locais de sucesso/falha, sem consumir uma chama
 
 ```powershell
 ./tools/test.ps1
-.tools/host-env/Scripts/python.exe tools/test-hardware.py --soak-seconds 180
+python tools/test-hardware.py --soak-seconds 180
 ./tools/host.ps1 stop
-.tools/host-env/Scripts/python.exe tools/test-recovery.py
+python tools/test-recovery.py
 ./tools/host.ps1 start
 ```
 

@@ -3,7 +3,7 @@
 - ESP-IDF/FreeRTOS para Waveshare ESP32-C6-LCD-1.47 sem touch, unidade FH8/8 MB validada. Nao confundir com Touch/JD9853.
 - SDK limpo v5.5.2; LVGL 8.3.11 e led_strip 2.5.5 fixados. Nao atualizar sem verificar compatibilidade.
 - Ambiente: `. ./tools/activate.ps1`; build: `./tools/idf.ps1 build`; testes: `./tools/test.ps1`. IDF_PATH/IDF_TOOLS_PATH locais; export.ps1 do SDK.
-- board/display isolam hardware; behavior/control sao C testavel no host; avatar/ui desenham; connectivity faz USB; main coordena. Host em services/core.
+- board/display isolam hardware; behavior/control sao C testavel no host; avatar/ui desenham; connectivity faz USB; main coordena. Host Rust em services/host (workspace: core, server, cli); UI Tauri em services/ui.
 - Host: `./tools/host.ps1 setup|start|stop|status`; CLI: `./tools/tokenbuddy.ps1 ...`. Chave em .tools fora do Git; nao enviar a chave ao ESP32.
 - BOOT GPIO9 e entrada com debounce; RESET permanece fisico. Nao alocar GPIOs sem esquema/conflitos microSD/USB.
 - Nunca gravar sem identificar chip/porta e confirmacao explicita. tools/flash.ps1 exige porta, MAC e -Confirmed. Parar host antes do flash; unidade sem touch/8 MB.

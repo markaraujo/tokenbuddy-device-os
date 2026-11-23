@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TokenBuddy</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      padding: 16px;
+      min-height: 100vh;
+    }
+    h1 { font-size: 1.3rem; margin-bottom: 12px; color: #4fc3f7; }
+    .card {
+      background: #16213e;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .card h2 { font-size: 0.85rem; color: #90a4ae; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .state-display {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.1rem;
+    }
+    .state-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: #66bb6a;
+    }
+    .state-dot.offline { background: #ef5350; }
+    .state-dot.working { background: #ffa726; }
+    .state-reason { color: #90a4ae; font-size: 0.9rem; margin-top: 4px; }
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 0.9rem;
+    }
+    .metric-label { color: #90a4ae; }
+    .metric-value { font-weight: 600; }
+    .agent-info { font-size: 0.85rem; line-height: 1.6; }
+    .agent-info span { color: #4fc3f7; }
+    .nav-buttons { display: flex; gap: 6px; }
+    .nav-btn {
+      flex: 1;
+      padding: 8px 0;
+      border: none;
+      border-radius: 6px;
+      background: #0f3460;
+      color: #e0e0e0;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .nav-btn:hover { background: #1a5276; }
+    .nav-btn.active { background: #4fc3f7; color: #1a1a2e; font-weight: 700; }
+    .error-box {
+      background: #b71c1c;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      margin-bottom: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>TokenBuddy</h1>
+
+  <div id="error" class="error-box"></div>
+
+  <div class="card">
+    <h2>Estado</h2>
+    <div class="state-display">
+      <div id="state-dot" class="state-dot"></div>
+      <span id="state-text">Conectando...</span>
+    </div>
+    <div id="state-reason" class="state-reason"></div>
+  </div>
+
+  <div class="card">
+    <h2>Sistema</h2>
+    <div class="metric-row"><span class="metric-label">CPU</span><span id="cpu" class="metric-value">—</span></div>
+    <div class="metric-row"><span class="metric-label">RAM</span><span id="ram" class="metric-value">—</span></div>
+    <div class="metric-row"><span class="metric-label">Firmware</span><span id="fw" class="metric-value">—</span></div>
+    <div class="metric-row"><span class="metric-label">MAC</span><span id="mac" class="metric-value">—</span></div>
+  </div>
+
+  <div class="card">
+    <h2>Último Agente</h2>
+    <div id="agent" class="agent-info">Nenhum evento ainda.</div>
+  </div>
+
+  <div class="card">
+    <h2>Navegação</h2>
+    <div class="nav-buttons">
+      <button class="nav-btn" data-page="0">0</button>
+      <button class="nav-btn" data-page="1">1</button>
+      <button class="nav-btn" data-page="2">2</button>
+      <button class="nav-btn" data-page="3">3</button>
+      <button class="nav-btn" data-page="4">4</button>
+    </div>
+  </div>
+
+  <script type="module">
+    const { invoke } = window.__TAURI__.core;
+
+    const $ = (id) => document.getElementById(id);
+    const stateDot = $('state-dot');
+    const stateText = $('state-text');
+    const stateReason = $('state-reason');
+    const errorBox = $('error');
+
+    function setState(state, reason) {
+      stateText.textContent = state;
+      stateReason.textContent = reason || '';
+      stateDot.className = 'state-dot';
+      if (state === 'OFFLINE' || state === 'DISCONNECTED') stateDot.classList.add('offline');
+      else if (state === 'WORKING') stateDot.classList.add('working');
+    }
+
+    async function poll() {
+      try {
+        const data = await invoke('get_status');
+        errorBox.style.display = 'none';
+
+        // Device info
+        const dev = data.device || {};
+        const online = !!dev.online;
+        setState(online ? 'ONLINE' : 'OFFLINE', online ? 'Dispositivo conectado' : 'USB desconectado');
+        $('fw').textContent = dev.fw || '—';
+        $('mac').textContent = dev.mac || '—';
+
+        // Telemetry
+        const tel = data.telemetry || {};
+        if (tel.cpu != null) $('cpu').textContent = tel.cpu.toFixed(1) + '%';
+        if (tel.ram_used != null && tel.ram_total != null) {
+          const mb = (v) => (v / 1024).toFixed(0);
+          $('ram').textContent = `${mb(tel.ram_used)} / ${mb(tel.ram_total)} MB`;
+        }
+
+        // Last agent event
+        const ev = data.last_agent_event;
+        if (ev) {
+          const tokens = [];
+          if (ev.input_tokens != null) tokens.push(`<span>${ev.input_tokens}</span> in`);
+          if (ev.output_tokens != null) tokens.push(`<span>${ev.output_tokens}</span> out`);
+          $('agent').innerHTML = `${ev.event} — <b>${ev.agent}</b>` + (tokens.length ? ` (${tokens.join(', ')})` : '');
+        } else {
+          $('agent').textContent = 'Nenhum evento ainda.';
+        }
+
+        // Page highlight
+        const page = dev.page ?? 0;
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+          btn.classList.toggle('active', parseInt(btn.dataset.page) === page);
+        });
+
+      } catch (e) {
+        errorBox.textContent = 'Host não está em execução. Inicie com: host.ps1 start';
+        errorBox.style.display = 'block';
+        setState('OFFLINE', 'Host offline');
+      }
+    }
+
+    // Navigation buttons
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const page = parseInt(btn.dataset.page);
+        try { await invoke('navigate', { page }); } catch (_) {}
+      });
+    });
+
+    poll();
+    setInterval(poll, 2000);
+  </script>
+</body>
+</html>

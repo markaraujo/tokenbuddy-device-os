@@ -1,4 +1,7 @@
 .tools/
+services/host/target/
+services/ui/node_modules/
+services/ui/src-tauri/target/
 firmware/esp32-c6/build/
 firmware/esp32-c6/sdkconfig
 firmware/esp32-c6/sdkconfig.old

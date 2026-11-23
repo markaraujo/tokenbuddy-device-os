@@ -1,0 +1,11 @@
+[package]
+name = "tokenbuddy-core"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde_json.workspace = true
+serialport = "4"
+sysinfo = "0.30"
+uuid = { version = "1", features = ["v4"] }
+which = "6"

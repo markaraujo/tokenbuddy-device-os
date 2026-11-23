@@ -1,0 +1,9 @@
+[package]
+name = "tokenbuddy-cli"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+tokenbuddy-core = { path = "../tokenbuddy-core" }
+serde_json.workspace = true
+ureq = { version = "2", features = ["json"] }

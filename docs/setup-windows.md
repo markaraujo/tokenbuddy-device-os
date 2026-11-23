@@ -16,7 +16,7 @@ preservados; SDK/toolchain/ambiente host estão em `.tools` dentro do projeto.
 | esptool | 4.14.0 |
 | LVGL / led_strip | 8.3.11 / 2.5.5, manifests e lock versionados |
 | Python SDK | .tools/espressif/python_env/idf5.5_py3.13_env/Scripts/python.exe |
-| Python host | .tools/host-env/Scripts/python.exe |
+| Rust host | services/host/target/release/tokenbuddy-server.exe (cargo build --release) |
 | TinyCC host | 0.9.27, .tools/tinycc/tcc/tcc.exe |
 
 ## Terminal e build
@@ -53,8 +53,8 @@ git clone --branch v5.5.2 --depth 1 --shallow-submodules --recursive https://git
 ```
 
 TinyCC foi obtido do servidor de releases indicado pelo site do projeto;
-procedência/hash e comando de teste em avatar-mvp.md. O host usa dependências
-fixadas em services/core/requirements.lock. Não instalar Python global alternativo.
+procedência/hash e comando de teste em avatar-mvp.md. O host Rust usa o
+workspace em services/host (build: `./tools/host.ps1 setup`).
 
 ## Gravação deliberada
 
