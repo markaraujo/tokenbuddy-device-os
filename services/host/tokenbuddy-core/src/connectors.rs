@@ -101,6 +101,74 @@ pub fn run_command(arguments: &[String], agent: &str, publish: &dyn Fn(Value)) -
     code
 }
 
+/// Executa `ollama run <model> <prompt>` e lê o uso de tokens da API local.
+///
+/// O processo CLI não expõe contagem de tokens; o host consulta
+/// `GET http://127.0.0.1:11434/api/ps` antes e depois para atribuir o delta
+/// ao modelo em execução. Se a API não estiver acessível, publica sem tokens.
+pub fn run_ollama(model: &str, prompt: &str, publish: &dyn Fn(Value)) -> i32 {
+    let task = uuid::Uuid::new_v4().simple().to_string();
+    publish(json!({"event": "agent.started", "agent": "IA Local", "task_id": task}));
+
+    // Linha de base antes do run (tokens acumulados no modelo, se já carregado).
+    let baseline = fetch_ollama_ps()
+        .and_then(|ps| model_tokens(&ps, model))
+        .unwrap_or(0);
+
+    let args: Vec<String> = vec![
+        "ollama".to_string(),
+        "run".to_string(),
+        model.to_string(),
+        prompt.to_string(),
+    ];
+    let code = Command::new(&args[0])
+        .args(&args[1..])
+        .status()
+        .map(|s| s.code().unwrap_or(-1))
+        .unwrap_or(-1);
+
+    // Estado final: delta = final - baseline (nunca negativo).
+    let final_tokens = fetch_ollama_ps()
+        .and_then(|ps| model_tokens(&ps, model));
+    let input_tokens = final_tokens.map(|f| f.saturating_sub(baseline));
+
+    publish(json!({
+        "event": if code == 0 { "agent.completed" } else { "agent.failed" },
+        "agent": "IA Local",
+        "task_id": task,
+        "input_tokens": input_tokens,
+        "output_tokens": input_tokens.and(Some(0)), // placeholder: /api/ps não separa output
+    }));
+    code
+}
+
+/// GET http://127.0.0.1:11434/api/ps — retorna o JSON bruto ou None.
+fn fetch_ollama_ps() -> Option<Value> {
+    let client = reqwest::blocking::Client::builder()
+        .timeout(std::time::Duration::from_secs(2))
+        .build()
+        .ok()?;
+    let resp = client
+        .get("http://127.0.0.1:11434/api/ps")
+        .send()
+        .ok()?;
+    if !resp.status().is_success() {
+        return None;
+    }
+    resp.json::<Value>().ok()
+}
+
+/// Extrai `tokens` do modelo listado em `/api/ps`.
+fn model_tokens(ps: &Value, model: &str) -> Option<u64> {
+    let models = ps.get("models")?.as_array()?;
+    for m in models {
+        if m.get("name").and_then(|v| v.as_str()) == Some(model) {
+            return m.get("tokens").and_then(|v| v.as_u64());
+        }
+    }
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

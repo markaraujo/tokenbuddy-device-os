@@ -15,7 +15,7 @@ use axum::{
 };
 use serde_json::{json, Value};
 use tokenbuddy_core::bridge::{Bridge, BridgeError};
-use tokenbuddy_core::connectors::{run_codex, run_command};
+use tokenbuddy_core::connectors::{run_codex, run_command, run_ollama};
 use tokenbuddy_core::metrics::sample_metrics;
 
 const VERSION: &str = "0.3.0";
@@ -434,15 +434,7 @@ async fn agents_run(
             ];
             run_command(&args, "Claude Code", &publish)
         }
-        "local" => {
-            let args: Vec<String> = vec![
-                "ollama".to_string(),
-                "run".to_string(),
-                "llama3.2".to_string(),
-                prompt.to_string(),
-            ];
-            run_command(&args, "IA Local", &publish)
-        }
+        "local" => run_ollama("llama3.2", prompt, &publish),
         _ => {
             return Err(error_response(
                 StatusCode::UNPROCESSABLE_ENTITY,
