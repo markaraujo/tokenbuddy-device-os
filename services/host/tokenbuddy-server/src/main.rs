@@ -15,6 +15,7 @@ use axum::{
 };
 use serde_json::{json, Value};
 use tokenbuddy_core::bridge::{Bridge, BridgeError};
+use tokenbuddy_core::connectors::{run_codex, run_command};
 use tokenbuddy_core::metrics::sample_metrics;
 
 const VERSION: &str = "0.3.0";
@@ -397,6 +398,62 @@ async fn expression(
     }
 }
 
+/// POST /api/agents/run — executa um agente (codex, claude, local) com um prompt.
+/// Retorna o código de saída do processo.
+async fn agents_run(
+    State(state): State<AppState>,
+    headers: axum::http::HeaderMap,
+    Json(value): Json<Value>,
+) -> Result<Json<Value>, Response> {
+    authorized(&state, &headers)?;
+
+    let agent = value["agent"].as_str().unwrap_or("");
+    let prompt = value["prompt"].as_str().unwrap_or("");
+    if agent.is_empty() || prompt.is_empty() {
+        return Err(error_response(
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "agent e prompt sao obrigatorios",
+        ));
+    }
+
+    // Publica eventos na bridge (ESP32).
+    let publish = |msg: Value| {
+        let _ = state.bridge.lock().unwrap().request(msg);
+    };
+
+    let code = match agent {
+        "codex" => {
+            let args: Vec<String> = vec![prompt.to_string()];
+            run_codex(&args, &publish)
+        }
+        "claude" => {
+            let args: Vec<String> = vec![
+                "claude".to_string(),
+                "-p".to_string(),
+                prompt.to_string(),
+            ];
+            run_command(&args, "Claude Code", &publish)
+        }
+        "local" => {
+            let args: Vec<String> = vec![
+                "ollama".to_string(),
+                "run".to_string(),
+                "llama3.2".to_string(),
+                prompt.to_string(),
+            ];
+            run_command(&args, "IA Local", &publish)
+        }
+        _ => {
+            return Err(error_response(
+                StatusCode::UNPROCESSABLE_ENTITY,
+                &format!("agent nao suportado: {agent}"),
+            ))
+        }
+    };
+
+    Ok(Json(json!({"ok": code == 0, "exit_code": code})))
+}
+
 pub fn create_app(bridge: Arc<Mutex<Bridge>>, key: String) -> Router {
     let state = AppState { bridge, key };
     Router::new()
@@ -406,6 +463,7 @@ pub fn create_app(bridge: Arc<Mutex<Bridge>>, key: String) -> Router {
         .route("/api/settings", post(settings))
         .route("/api/navigate", post(navigate))
         .route("/api/expression", post(expression))
+        .route("/api/agents/run", post(agents_run))
         .with_state(state)
 }
 

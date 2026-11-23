@@ -98,6 +98,20 @@
   </div>
 
   <div class="card">
+    <h2>Agentes</h2>
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <select id="agent-select" style="flex:1;padding:6px;border-radius:4px;background:#0f3460;color:#e0e0e0;border:none;font-size:0.85rem;">
+        <option value="codex">Codex</option>
+        <option value="claude">Claude Code</option>
+        <option value="local">IA Local</option>
+      </select>
+    </div>
+    <textarea id="agent-prompt" placeholder="Digite o prompt..." style="width:100%;height:60px;padding:8px;border-radius:4px;background:#0f3460;color:#e0e0e0;border:none;font-size:0.85rem;resize:vertical;margin-bottom:8px;"></textarea>
+    <button id="agent-run" class="nav-btn" style="width:100%;padding:8px;">Executar</button>
+    <div id="agent-status" style="margin-top:8px;font-size:0.8rem;color:#90a4ae;"></div>
+  </div>
+
+  <div class="card">
     <h2>Navegação</h2>
     <div class="nav-buttons">
       <button class="nav-btn" data-page="0">0</button>
@@ -170,11 +184,30 @@
     }
 
     // Navigation buttons
-    document.querySelectorAll('.nav-btn').forEach(btn => {
+    document.querySelectorAll('.nav-btn[data-page]').forEach(btn => {
       btn.addEventListener('click', async () => {
         const page = parseInt(btn.dataset.page);
         try { await invoke('navigate', { page }); } catch (_) {}
       });
+    });
+
+    // Agent execution
+    const agentRunBtn = $('agent-run');
+    const agentStatus = $('agent-status');
+    agentRunBtn.addEventListener('click', async () => {
+      const agent = $('agent-select').value;
+      const prompt = $('agent-prompt').value.trim();
+      if (!prompt) return;
+      agentRunBtn.disabled = true;
+      agentStatus.textContent = 'Executando...';
+      try {
+        const result = await invoke('run_agent', { agent, prompt });
+        agentStatus.textContent = result.ok ? 'Concluído' : `Falha (exit ${result.exit_code})`;
+      } catch (e) {
+        agentStatus.textContent = `Erro: ${e}`;
+      } finally {
+        agentRunBtn.disabled = false;
+      }
     });
 
     poll();

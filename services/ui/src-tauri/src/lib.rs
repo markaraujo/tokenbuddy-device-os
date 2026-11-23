@@ -107,6 +107,30 @@ async fn set_expression(state: State<'_, AppState>, expr: &str, duration_ms: u64
     Ok(())
 }
 
+/// POST /api/agents/run — executa um agente com prompt.
+#[tauri::command]
+async fn run_agent(state: State<'_, AppState>, agent: &str, prompt: &str) -> Result<serde_json::Value, String> {
+    let url = format!("http://127.0.0.1:{}/api/agents/run", state.config.http_port);
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(300))
+        .build()
+        .map_err(|e| e.to_string())?;
+    let body = serde_json::json!({"agent": agent, "prompt": prompt});
+    let resp = client
+        .post(&url)
+        .header("X-TokenBuddy-Key", &state.config.api_key)
+        .header("Content-Type", "application/json")
+        .body(body.to_string())
+        .send()
+        .await
+        .map_err(|e| format!("Falha ao conectar: {e}"))?;
+    if !resp.status().is_success() {
+        return Err(format!("API respondeu {}", resp.status()));
+    }
+    let v: serde_json::Value = resp.json().await.map_err(|e| e.to_string())?;
+    Ok(v)
+}
+
 /// Sair da aplicação.
 #[tauri::command]
 fn quit(app: tauri::AppHandle) {
@@ -192,7 +216,7 @@ pub fn run() {
 
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![get_status, navigate, set_expression, quit])
+        .invoke_handler(tauri::generate_handler![get_status, navigate, set_expression, run_agent, quit])
         .run(tauri::generate_context!())
         .expect("erro ao iniciar TokenBuddy UI");
 }
