@@ -153,6 +153,21 @@ pub fn run() {
             let quit_item = MenuItem::with_id(app, "quit", "Sair", true, None::<&str>)?;
 
             let menu = Menu::new(app)?;
+            #[cfg(target_os = "windows")]
+            {
+                let hide_item = MenuItem::with_id(app, "hide-window", "Ocultar janela", true, None::<&str>)?;
+                menu.append_items(&[
+                    &status_item,
+                    &page0,
+                    &page1,
+                    &page2,
+                    &page3,
+                    &page4,
+                    &hide_item,
+                    &quit_item,
+                ])?;
+            }
+            #[cfg(not(target_os = "windows"))]
             menu.append_items(&[
                 &status_item,
                 &page0,
@@ -173,6 +188,12 @@ pub fn run() {
                         if let Some(win) = app.get_webview_window("main") {
                             let _ = win.show();
                             let _ = win.set_focus();
+                        }
+                    }
+                    #[cfg(target_os = "windows")]
+                    "hide-window" => {
+                        if let Some(win) = app.get_webview_window("main") {
+                            let _ = win.hide();
                         }
                     }
                     "page-0" | "page-1" | "page-2" | "page-3" | "page-4" => {
@@ -207,12 +228,23 @@ pub fn run() {
                     {
                         let app = tray.app_handle();
                         if let Some(win) = app.get_webview_window("main") {
-                            let _ = win.show();
-                            let _ = win.set_focus();
+                            // Alterna visível/oculto ao clicar na tray.
+                            if win.is_visible().unwrap_or(true) {
+                                let _ = win.hide();
+                            } else {
+                                let _ = win.show();
+                                let _ = win.set_focus();
+                            }
                         }
                     }
                 })
                 .build(app)?;
+
+            // Janela começa oculta: a app vive na tray (Windows).
+            #[cfg(target_os = "windows")]
+            if let Some(win) = app.get_webview_window("main") {
+                let _ = win.hide();
+            }
 
             Ok(())
         })
