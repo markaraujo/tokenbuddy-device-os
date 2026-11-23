@@ -73,8 +73,10 @@ static void layout(unsigned page)
     visible(beam,false);visible(version,page==4);
     if (page==1) {
         show_card(0,10,66,152,91);
+        /* Agent name can be long ("Sem tarefa", "Manual"): use font14 so it fits the 132px line. */
+        lv_obj_set_style_text_font(cards[0].value,&lv_font_montserrat_14,0);
         show_card(1,10,169,73,80);show_card(2,89,169,73,80);
-        for (unsigned i=1;i<3;++i) {lv_obj_set_style_text_font(cards[i].value,&lv_font_montserrat_22,0);lv_obj_set_style_text_color(cards[i].value,i==1?cyan():lv_color_hex(0x36edb5),0);}
+        for (unsigned i=1;i<3;++i) {lv_obj_set_style_text_font(cards[i].value,&lv_font_montserrat_12,0);lv_obj_set_style_text_color(cards[i].value,i==1?cyan():lv_color_hex(0x36edb5),0);}
         text(cards[1].caption,"ENTRADA");text(cards[2].caption,"SAIDA");
         lv_obj_set_pos(cards[0].detail,10,54);lv_obj_set_size(cards[0].detail,132,20);
         lv_obj_set_style_text_font(cards[0].detail,&lv_font_montserrat_12,0);
@@ -84,12 +86,12 @@ static void layout(unsigned page)
         for (unsigned i=0;i<4;++i) {
             show_card(i,10,65+49*i,152,45);
             if (page==2) {
-                lv_obj_set_size(cards[i].caption,44,16);
-                lv_obj_set_pos(cards[i].value,57,3);lv_obj_set_size(cards[i].value,85,24);
-                lv_obj_set_style_text_font(cards[i].value,i==3?&lv_font_montserrat_16:&lv_font_montserrat_18,0);
+                /* Caption left, value right — same row, no overlap. */
+                lv_obj_set_pos(cards[i].caption,10,12);lv_obj_set_size(cards[i].caption,80,18);
+                lv_obj_set_pos(cards[i].value,70,12);lv_obj_set_size(cards[i].value,72,18);
+                lv_obj_set_style_text_font(cards[i].value,&lv_font_montserrat_12,0);
                 lv_obj_set_style_text_align(cards[i].value,LV_TEXT_ALIGN_RIGHT,0);
-                lv_obj_set_pos(cards[i].detail,10,24);lv_obj_set_size(cards[i].detail,132,16);
-                lv_obj_set_pos(cards[i].bar,10,41);lv_obj_set_size(cards[i].bar,132,3);
+                visible(cards[i].detail,false);visible(cards[i].bar,false);
             } else {
                 visible(cards[i].caption,false);visible(cards[i].detail,false);
                 visible(cards[i].marker,true);
@@ -99,18 +101,19 @@ static void layout(unsigned page)
             }
         }
     } else if (page==4) {
-        show_card(0,10,66,152,82);text(cards[0].caption,"BRILHO");
-        lv_obj_set_style_text_font(cards[0].value,&lv_font_montserrat_22,0);lv_obj_set_size(cards[0].value,64,28);
-        lv_obj_set_pos(cards[0].detail,76,33);lv_obj_set_size(cards[0].detail,66,16);text(cards[0].detail,"MAX 50%");
-        lv_obj_set_pos(cards[0].bar,10,65);lv_obj_set_size(cards[0].bar,132,5);
-        show_card(1,10,160,152,40);show_card(2,10,208,152,40);
+        /* Elegant layout with generous spacing. */
+        show_card(0,10,60,152,78);text(cards[0].caption,"BRILHO");
+        lv_obj_set_style_text_font(cards[0].value,&lv_font_montserrat_16,0);lv_obj_set_size(cards[0].value,132,22);
+        lv_obj_set_pos(cards[0].detail,10,46);lv_obj_set_size(cards[0].detail,132,14);text(cards[0].detail,"MAX 50%");
+        lv_obj_set_pos(cards[0].bar,10,62);lv_obj_set_size(cards[0].bar,132,5);
+        show_card(1,10,148,152,52);show_card(2,10,210,152,52);
         for (unsigned i=1;i<3;++i) {
-            lv_obj_set_size(cards[i].caption,76,16);lv_obj_set_pos(cards[i].caption,10,12);
-            lv_obj_set_pos(cards[i].value,84,10);lv_obj_set_size(cards[i].value,58,22);
+            lv_obj_set_pos(cards[i].caption,10,8);lv_obj_set_size(cards[i].caption,132,14);
+            lv_obj_set_pos(cards[i].value,10,26);lv_obj_set_size(cards[i].value,132,20);
             lv_obj_set_style_text_font(cards[i].value,&lv_font_montserrat_14,0);
             visible(cards[i].detail,false);
         }
-        text(cards[1].caption,"ANIMACAO");text(cards[2].caption,"DEMO LOCAL");
+        text(cards[1].caption,"ANIMA");text(cards[2].caption,"DEMO");
     }
     /* Card slots are reused; reset alignment inherited from the metrics page. */
     if (page!=2) for (unsigned i=0;i<4;++i) lv_obj_set_style_text_align(cards[i].value,LV_TEXT_ALIGN_LEFT,0);
@@ -157,8 +160,8 @@ void ui_init(void)
     beam=plain(cards[0].root);lv_obj_set_size(beam,26,3);lv_obj_set_style_radius(beam,2,0);
     lv_obj_set_style_bg_color(beam,cyan(),0);lv_obj_set_style_bg_opa(beam,LV_OPA_COVER,0);
     lv_obj_set_style_shadow_color(beam,cyan(),0);lv_obj_set_style_shadow_width(beam,5,0);lv_obj_set_style_shadow_opa(beam,LV_OPA_30,0);
-    hint=label(page_root,&lv_font_montserrat_12,0xc5dfed);lv_obj_align(hint,LV_ALIGN_TOP_MID,0,280);
-    version=label(page_root,&lv_font_montserrat_12,0xb7d6e6);text(version,"v0.3.0  |  8 MB");lv_obj_align(version,LV_ALIGN_TOP_MID,0,258);
+    hint=label(page_root,&lv_font_montserrat_12,0xc5dfed);lv_obj_align(hint,LV_ALIGN_TOP_MID,0,290);
+    version=label(page_root,&lv_font_montserrat_12,0xb7d6e6);text(version,"v0.3.0  |  8 MB");lv_obj_align(version,LV_ALIGN_TOP_MID,0,270);
     for (unsigned i=0;i<5;++i) {
         dots[i]=plain(page_root);lv_obj_set_style_radius(dots[i],2,0);lv_obj_set_style_bg_opa(dots[i],LV_OPA_COVER,0);
     }
@@ -179,7 +182,7 @@ void ui_update(const tb_model *m,tb_pose pose,uint32_t now)
         static const char *titles[]={"TokenBuddy","Agentes","Sistema","Eventos","Ajustes"};
         static const char *icons[]={LV_SYMBOL_HOME,LV_SYMBOL_PLAY,LV_SYMBOL_CHARGE,LV_SYMBOL_BELL,LV_SYMBOL_SETTINGS};
         text(title,titles[m->page]);text(icon,icons[m->page]);lv_obj_center(icon);
-        text(hint,m->page==4?"SEGURE BOOT: BRILHO":"BOOT: PROXIMA TELA");lv_obj_align(hint,LV_ALIGN_TOP_MID,0,280);
+        text(hint,m->page==4?"SEGURE BOOT: BRILHO":"BOOT: PROXIMA TELA");lv_obj_align(hint,LV_ALIGN_TOP_MID,0,286);
         for (unsigned i=0;i<5;++i) {
             lv_obj_set_pos(dots[i],51+16*i-(m->page==i?4:0),302);lv_obj_set_size(dots[i],m->page==i?12:4,4);
             lv_obj_set_style_bg_color(dots[i],m->page==i?cyan():lv_color_hex(0x28465d),0);
@@ -195,15 +198,15 @@ void ui_update(const tb_model *m,tb_pose pose,uint32_t now)
     lv_obj_set_style_bg_color(status_dot,lv_color_hex(m->connected?0x32eeb0:0xf6b75a),0);
     char value[96],detail[96];
     if (m->page==1) {
-        text(cards[0].caption,m->agent_running?"AGENTE ATIVO":"ULTIMA TAREFA");
-        text(cards[0].value,m->agent[0]?m->agent:"Sem tarefa");text(cards[0].detail,m->agent_status);
-        uint32_t color=!strcmp(m->agent_status,"Falhou")?0xff5367:!strcmp(m->agent_status,"Concluido")?0x30eeb0:0x00e5ff;
+        text(cards[0].caption,m->agent_running?"AGENTE":"TAREFA");
+        text(cards[0].value,m->agent[0]?m->agent:"NADA");text(cards[0].detail,m->agent_status);
+        uint32_t color=!strcmp(m->agent_status,"ERRO")?0xff5367:!strcmp(m->agent_status,"OK")?0x30eeb0:0x00e5ff;
         lv_obj_set_style_text_color(cards[0].detail,lv_color_hex(color),0);
         lv_obj_set_style_bg_color(cards[0].detail,lv_color_hex(color),0);lv_obj_set_style_bg_opa(cards[0].detail,LV_OPA_10,0);
         lv_obj_set_style_border_color(cards[0].root,lv_color_hex(color),0);
         for (unsigned i=1;i<3;++i) {
             if (m->tokens_known) compact(value,sizeof(value),i==1?m->input_tokens:m->output_tokens);else snprintf(value,sizeof(value),"--");
-            text(cards[i].value,value);text(cards[i].detail,m->tokens_known?"TOKENS":"N/D");
+            text(cards[i].value,value);text(cards[i].detail,m->tokens_known?"TKN":"N/D");
         }
     } else if (m->page==2) {
         const char *names[]={"CPU","RAM","GPU","VRAM"};
@@ -212,10 +215,10 @@ void ui_update(const tb_model *m,tb_pose pose,uint32_t now)
             bool known=m->connected && m->telemetry_known && (i<2 || m->gpu_known);
             double percent=i==0?m->cpu:i==1?m->ram:i==2?m->gpu:(m->vram_total>0?m->vram_used/m->vram_total*100:0);
             text(cards[i].caption,names[i]);
-            if (!known) {snprintf(value,sizeof(value),"--");snprintf(detail,sizeof(detail),m->connected?"DADOS INDISPONIVEIS":"HOST DESCONECTADO");}
-            else if (i==1) {snprintf(value,sizeof(value),"%.0f%%",percent);snprintf(detail,sizeof(detail),"%.1f / %.1f GiB",m->ram_used/1024,m->ram_total/1024);}
-            else if (i==3) {snprintf(value,sizeof(value),"%.0f MiB",m->vram_used);snprintf(detail,sizeof(detail),"DE %.0f MiB",m->vram_total);}
-            else {snprintf(value,sizeof(value),"%.0f%%",percent);snprintf(detail,sizeof(detail),i==0?"PROCESSADOR":"NVIDIA GPU");}
+            if (!known) {snprintf(value,sizeof(value),"--");snprintf(detail,sizeof(detail),m->connected?"NADA":"HOST OFF");}
+            else if (i==1) {snprintf(value,sizeof(value),"%.0f%%",percent);snprintf(detail,sizeof(detail),"DE %.0f GiB",m->ram_total/1024);}
+            else if (i==3) {snprintf(value,sizeof(value),m->vram_used>=1024?"%.1f GB":"%.0f MiB",m->vram_used/1024.0);snprintf(detail,sizeof(detail),"DE %.0f GB",m->vram_total/1024);}
+            else {snprintf(value,sizeof(value),"%.0f%%",percent);snprintf(detail,sizeof(detail),i==0?"CPU":"GPU");}
             text(cards[i].value,value);text(cards[i].detail,detail);bar_value(i,(int)(percent+.5),known,colors[i]);
         }
     } else if (m->page==3) {
@@ -236,8 +239,8 @@ void ui_update(const tb_model *m,tb_pose pose,uint32_t now)
     } else {
         snprintf(value,sizeof(value),"%u%%",m->brightness);text(cards[0].value,value);
         bar_value(0,m->brightness,true,0x00e5ff);
-        text(cards[1].value,m->animation==0?"Parada":m->animation==1?"Normal":"Intensa");
-        text(cards[2].value,m->demo?"Ativa":"Off");
+        text(cards[1].value,m->animation==0?"OFF":m->animation==1?"NORMAL":"INTENSA");
+        text(cards[2].value,m->demo?"ATIVA":"OFF");
         lv_obj_set_style_text_color(cards[2].value,lv_color_hex(m->demo?0x30eeb0:0xc5dfed),0);
     }
 }

@@ -13,13 +13,13 @@ void tb_add_event(tb_model *m, const char *text)
 void tb_model_init(tb_model *m)
 {
     memset(m,0,sizeof(*m)); m->brightness=30; m->animation=1;
-    strcpy(m->agent_status,"Sem tarefa"); tb_add_event(m,"TokenBuddy iniciado");
+    strcpy(m->agent_status,"NENHUM"); tb_add_event(m,"TokenBuddy iniciado");
 }
 void tb_model_tick(tb_model *m, tb_behavior *b, uint32_t now)
 {
     if (m->connected && (uint32_t)(now-m->last_seen)>5000) {
         m->connected=false; m->agent_running=false; m->telemetry_known=false;
-        strcpy(m->agent_status,"Host desconectado");
+        strcpy(m->agent_status,"OFFLINE");
         tb_add_event(m,"Host desconectado");
     }
     tb_set_base(b,m->connected?(m->agent_running?TB_WORKING:TB_IDLE):TB_DISCONNECTED);
@@ -118,7 +118,7 @@ tb_reply tb_command(tb_model *model,tb_behavior *behavior,const char *line,uint3
         unsigned in=0,out=0;
         if (known && (!integer(o,"input_tokens",2147483647,&in) || !integer(o,"output_tokens",2147483647,&out))) goto done;
         snprintf(m.agent,sizeof(m.agent),"%s",agent);
-        snprintf(m.agent_status,sizeof(m.agent_status),"%s",start?"Executando":success?"Concluido":"Falhou");
+        snprintf(m.agent_status,sizeof(m.agent_status),"%s",start?"ATIVO":success?"OK":"ERRO");
         m.tokens_known=known; m.input_tokens=in; m.output_tokens=out;
         m.agent_running=start; m.connected=true; m.last_seen=now; m.demo=false;
         if (!start) tb_request(&b,fail?TB_ERROR:TB_SUCCESS,now,5000);

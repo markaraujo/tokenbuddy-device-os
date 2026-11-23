@@ -25,7 +25,7 @@ bool tb_request(tb_behavior *b, tb_state state, uint32_t now, uint32_t duration)
 }
 const char *tb_state_name(tb_state state)
 {
-    static const char *names[]={"REPOUSO","FELIZ","CONCENTRADO","ERRO","CURIOSO",
-        "TRABALHANDO","SUCESSO","DORMINDO","DESCONECTADO","TONTO"};
+    static const char *names[]={"REPOUSO","FELIZ","FOCO","ERRO","CURIOSO",
+        "TRABALHO","SUCESSO","DORMINDO","OFFLINE","TONTO"};
     return (unsigned)state<TB_STATE_COUNT?names[state]:"INVALIDO";
 }
