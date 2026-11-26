@@ -50,7 +50,10 @@ struct RealSerial {
 
 impl RealSerial {
     fn open(port: &str) -> Result<Self, BridgeError> {
+        // Necessário no Linux: o default do serialport é timeout 0, o que faz
+        // reads retornarem instantaneamente (sem nunca esperar o status da placa).
         let s = serialport::new(port, 115200u32)
+            .timeout(std::time::Duration::from_millis(50))
             .open()
             .map_err(|e| BridgeError::Io(e.to_string()))?;
         Ok(Self { inner: s })
@@ -194,7 +197,7 @@ fn worker_loop<F>(
 
         // Heartbeat a cada ~1s.
         if heartbeat_at.map_or(true, |t| now - t >= Duration::from_secs(1)) {
-            match send_command(serial.as_mut().unwrap(), &mut rxBuf, &mut next_id, &serde_json::json!({"type": "heartbeat"})) {
+            match send_command(serial.as_mut().unwrap(), &mut rxBuf, &mut next_id, &serde_json::json!({"type": "heartbeat"}), state.as_ref(), &expected_mac) {
                 Ok(_) => { heartbeat_at = Some(now); }
                 Err(e) => { on_error(&state, e); break; }
             }
@@ -203,7 +206,7 @@ fn worker_loop<F>(
         // Telemetria a cada ~2s.
         if metrics_at.map_or(true, |t| now - t >= Duration::from_secs(2)) {
             let m = metrics();
-            match send_command(serial.as_mut().unwrap(), &mut rxBuf, &mut next_id, &m) {
+            match send_command(serial.as_mut().unwrap(), &mut rxBuf, &mut next_id, &m, state.as_ref(), &expected_mac) {
                 Ok(_) => {
                     let mut g = state.lock().unwrap();
                     g.telemetry = m;
@@ -241,7 +244,7 @@ fn worker_loop<F>(
                 let _ = reply.send(Err(BridgeError::Timeout));
                 continue;
             }
-            match send_command(serial.as_mut().unwrap(), &mut rxBuf, &mut next_id, &message) {
+            match send_command(serial.as_mut().unwrap(), &mut rxBuf, &mut next_id, &message, state.as_ref(), &expected_mac) {
                 Ok(ack) => {
                     if message.get("type").and_then(|x| x.as_str()) == Some("event") {
                         let mut g = state.lock().unwrap();
@@ -337,6 +340,8 @@ fn send_command(
     rxBuf: &mut Vec<u8>,
     next_id: &mut u32,
     message: &Value,
+    state: &Mutex<State>,
+    expected_mac: &str,
 ) -> Result<Value, BridgeError> {
     let id = *next_id;
     *next_id = if *next_id >= 2_147_483_647 { 1 } else { *next_id + 1 };
@@ -357,6 +362,7 @@ fn send_command(
             let line: Vec<u8> = rxBuf.drain(..end).collect();
             if let Ok(s) = std::str::from_utf8(&line[..line.len().saturating_sub(1)]) {
                 if let Ok(v) = serde_json::from_str::<Value>(s) {
+                    // ACK correspondente encerra a espera.
                     if v.get("type").and_then(|x| x.as_str()) == Some("ack")
                         && v.get("id").and_then(|x| x.as_u64()) == Some(id as u64)
                     {
@@ -370,6 +376,8 @@ fn send_command(
                         }
                         return Ok(v);
                     }
+                    // Status/outras linhas não-ACK devem ser processadas, não descartadas.
+                    process_line(v, expected_mac, state)?;
                 }
             }
         }
@@ -505,7 +513,7 @@ mod tests {
         let status = serde_json::json!({
             "v": 1, "type": "status", "device": "TokenBuddy", "mac": "aa:bb:cc:dd:ee:ff"
         });
-        // Status chega antes do ACK (id 1) — deve ser ignorado pelo send_command.
+        // Status chega antes do ACK (id 1) — deve ser processado (não descartado) e o ACK deve ser retornado.
         let mut chunk = serde_json::to_string(&status).unwrap().into_bytes();
         chunk.extend_from_slice(b"\n");
         chunk.extend_from_slice(br#"{"v":1,"type":"ack","id":1,"ok":true}"#.as_ref());
@@ -515,11 +523,14 @@ mod tests {
         let mut rxBuf = Vec::new();
         let mut next_id = 1u32;
         let mut s: Box<dyn SerialPort> = Box::new(serial);
+        let state2 = Mutex::new(State::default());
         let ack = send_command(
             &mut s,
             &mut rxBuf,
             &mut next_id,
             &serde_json::json!({"type": "heartbeat"}),
+            &state2,
+            "aa:bb:cc:dd:ee:ff",
         )
         .unwrap();
         assert_eq!(ack["id"], 1);
@@ -534,11 +545,14 @@ mod tests {
         let mut rxBuf = Vec::new();
         let mut next_id = 1u32;
         let mut s: Box<dyn SerialPort> = Box::new(serial);
+        let state3 = Mutex::new(State::default());
         let err = send_command(
             &mut s,
             &mut rxBuf,
             &mut next_id,
             &serde_json::json!({"type": "settings"}),
+            &state3,
+            "aa:bb:cc:dd:ee:ff",
         )
         .unwrap_err();
         assert!(matches!(err, BridgeError::Command(m) if m == "priority"));
@@ -551,7 +565,8 @@ mod tests {
         let mut rxBuf = Vec::new();
         let mut next_id = 1u32;
         let mut s: Box<dyn SerialPort> = Box::new(serial);
-        let err = send_command(&mut s, &mut rxBuf, &mut next_id, &big).unwrap_err();
+        let state4 = Mutex::new(State::default());
+        let err = send_command(&mut s, &mut rxBuf, &mut next_id, &big, &state4, "aa:bb:cc:dd:ee:ff").unwrap_err();
         assert!(matches!(err, BridgeError::Command(m) if m.contains("768")));
     }
 }
@@ -591,7 +606,7 @@ fn connect(
         if identified {
             // Encerra frame parcial deixado por um host anterior e confirma com heartbeat.
             serial.write_all(b"\n").map_err(|e| BridgeError::Io(e.to_string()))?;
-            send_command(&mut serial, rxBuf, next_id, &serde_json::json!({"type": "heartbeat"}))?;
+            send_command(&mut serial, rxBuf, next_id, &serde_json::json!({"type": "heartbeat"}), state, expected_mac)?;
             let mut g = state.lock().unwrap();
             g.connected = true;
             g.last_error = None;
@@ -600,7 +615,7 @@ fn connect(
             // Reenvia o evento de agente ativo, se houver.
             if let Some(ref a) = agent {
                 if a.get("event").and_then(|x| x.as_str()) == Some("agent.started") {
-                    send_command(&mut serial, rxBuf, next_id, a)?;
+                    send_command(&mut serial, rxBuf, next_id, a, state, expected_mac)?;
                 }
             }
             return Ok(serial);

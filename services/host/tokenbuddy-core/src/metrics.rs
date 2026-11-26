@@ -56,14 +56,14 @@ pub fn sample_metrics() -> Value {
 /// Consulta nvidia-smi; retorna None quando o binário não existe ou a leitura falha.
 fn sample_gpu() -> Option<Value> {
     let exe = which::which("nvidia-smi").ok()?;
-    let output = Command::new(exe)
-        .args([
-            "--query-gpu=utilization.gpu,memory.used,memory.total",
-            "--format=csv,noheader,nounits",
-        ])
-        .creation_flags(create_no_window())
-        .output()
-        .ok()?;
+    let mut command = Command::new(exe);
+    command.args([
+        "--query-gpu=utilization.gpu,memory.used,memory.total",
+        "--format=csv,noheader,nounits",
+    ]);
+    #[cfg(windows)]
+    command.creation_flags(create_no_window());
+    let output = command.output().ok()?;
     if !output.status.success() {
         return None;
     }
